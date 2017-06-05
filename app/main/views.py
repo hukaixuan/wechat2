@@ -9,13 +9,24 @@ from flask_login import login_required, current_user
 from flask_sqlalchemy import get_debug_queries
 import xml.etree.ElementTree as ET
 import requests
+import hashlib
 
 
 @main.route('/',methods=['GET', 'POST'])
 def index():
 	if request.method == 'GET':
 		print('coming Get')
-		return make_response('please use post')
+		data = request.args
+		token = 'YourToken'
+		signature = data.get('signature','')
+		timestamp = data.get('timestamp','')
+		nonce = data.get('nonce','')
+		echostr = data.get('echostr','')
+		s = [timestamp,nonce,token]
+		s.sort()
+		s = ''.join(s)
+		if (hashlib.sha1(s).hexdigest() == signature):
+			return make_response(echostr)
 	if request.method == 'POST':
 		xml_str = request.stream.read()
 		xml = ET.fromstring(xml_str)
